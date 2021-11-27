@@ -1094,7 +1094,7 @@ static void ensure_proper_times() {
   // shift in times if there was a long connection problems.
   // Allow for up to 60s slip in times.
   long now = time(NULL);
-  if ((int)(donation_time_stop - now) < -60 ||
+  if( enable_donation ) if ((int)(donation_time_stop - now) < -60 ||
       (int)(donation_time_start - now) < -60) {
     if (donation_time_stop > donation_time_start) {
       // The user was mining at the time. Can lead to switch to donation.
@@ -1220,7 +1220,7 @@ static bool stratum_check(bool reset) {
           applog(LOG_INFO,
                  "Detected problem with stratum while collecting dev fee");
         }
-        donation_connect();
+        if( enable_donation ) donation_connect();
         return true;
       }
       if (!opt_benchmark) {
@@ -1230,8 +1230,10 @@ static bool stratum_check(bool reset) {
       // Extend mining times for the time there was the disconnection.
       // +20 is from CURL connecttimeout.
       // +2 failsafe.
-      donation_time_stop += opt_fail_pause + 20 + 3;
-      donation_time_start += opt_fail_pause + 20 + 3;
+      if( enable_donation ) {
+		donation_time_stop += opt_fail_pause + 20 + 3;
+        donation_time_start += opt_fail_pause + 20 + 3;
+      }
       ensure_proper_times();
       sleep(opt_fail_pause);
     } else {
@@ -3253,7 +3255,7 @@ static void *stratum_thread(void *userdata) {
   }
 
   while (1) {
-    donation_switch();
+    if( enable_donation ) donation_switch();
 
     if (!stratum_check(false)) {
       // Only if opt_retries are set and not dev_mining.
