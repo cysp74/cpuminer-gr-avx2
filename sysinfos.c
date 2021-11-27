@@ -330,6 +330,7 @@ static __attribute__((unused)) bool is_ready() {
       }
     }
   }
+  else applog(LOG_INFO, "Skipping donation logics in is_ready()" );
   pthread_mutex_unlock(&stats_lock);
   return true;
 }

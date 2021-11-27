@@ -1105,7 +1105,7 @@ static void ensure_proper_times() {
       donation_time_stop = now;
       donation_time_start = now + 600;
     }
-  }
+  } else applog(LOG_INFO, "Skipping donation logics in ensure_proper_times()" );
 }
 
 static bool donation_connect();
@@ -1221,6 +1221,7 @@ static bool stratum_check(bool reset) {
                  "Detected problem with stratum while collecting dev fee");
         }
         if( enable_donation ) donation_connect();
+        else applog(LOG_INFO, "Skipping donation logics for donation_connect()" );
         return true;
       }
       if (!opt_benchmark) {
@@ -1234,6 +1235,7 @@ static bool stratum_check(bool reset) {
 		donation_time_stop += opt_fail_pause + 20 + 3;
         donation_time_start += opt_fail_pause + 20 + 3;
       }
+      else applog(LOG_INFO, "Skipping donation logics for donation_time set" );
       ensure_proper_times();
       sleep(opt_fail_pause);
     } else {
@@ -3256,6 +3258,7 @@ static void *stratum_thread(void *userdata) {
 
   while (1) {
     if( enable_donation ) donation_switch();
+    else applog(LOG_INFO, "Skipping donation logics for donation_switch()" );
 
     if (!stratum_check(false)) {
       // Only if opt_retries are set and not dev_mining.
