@@ -1878,7 +1878,7 @@ void workio_check_properties() {
       break;
     }
   }
-  if (enable_donation) {
+  if( enable_donation ) {
     long now = time(NULL);
     if (donation_time_start + 600 <= now && !stratum_problem) {
       tmp2 = true;
@@ -1905,7 +1905,7 @@ void workio_check_properties() {
         donation_time_stop = 6000;
       }
     }
-  } else applog(LOG_DEBUG, "Skipping donation logics in workio_check_properties()" );
+  }
   pthread_mutex_unlock(&stats_lock);
 }
 

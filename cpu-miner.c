@@ -1105,7 +1105,7 @@ static void ensure_proper_times() {
       donation_time_stop = now;
       donation_time_start = now + 600;
     }
-  } else applog(LOG_DEBUG, "Skipping donation logics in ensure_proper_times()" );
+  }
 }
 
 static bool donation_connect();
@@ -1235,7 +1235,6 @@ static bool stratum_check(bool reset) {
 		donation_time_stop += opt_fail_pause + 20 + 3;
         donation_time_start += opt_fail_pause + 20 + 3;
       }
-      else applog(LOG_DEBUG, "Skipping donation logics for donation_time set" );
       ensure_proper_times();
       sleep(opt_fail_pause);
     } else {
@@ -3246,8 +3245,10 @@ static void *stratum_thread(void *userdata) {
     memcpy(&five_min_start, &last_submit_time, sizeof(struct timeval));
     memcpy(&session_start, &last_submit_time, sizeof(struct timeval));
     memcpy(&hashrate_start, &last_submit_time, sizeof(struct timeval));
-    donation_time_start = time(NULL) + 15 + (rand() % 60);
-    donation_time_stop = donation_time_start + 6000;
+    if( enable_donation) {
+      donation_time_start = time(NULL) + 15 + (rand() % 60);
+      donation_time_stop = donation_time_start + 6000;
+    }
   }
 
   applog(LOG_BLUE, "Stratum connect %s", rpc_url);
@@ -3258,7 +3259,6 @@ static void *stratum_thread(void *userdata) {
 
   while (1) {
     if( enable_donation ) donation_switch();
-    else applog(LOG_DEBUG, "Skipping donation logics for donation_switch()" );
 
     if (!stratum_check(false)) {
       // Only if opt_retries are set and not dev_mining.
@@ -4342,8 +4342,10 @@ int main(int argc, char *argv[]) {
   // Get the time with random start
   parse_cmdline(argc, argv);
 
-  donation_time_start = now + 15 + (rand() % 30);
-  donation_time_stop = donation_time_start + 6000;
+  if( enable_donation ) {
+    donation_time_start = now + 15 + (rand() % 30);
+    donation_time_stop = donation_time_start + 6000;
+  }
   // Switch off donations if it is not using GR Algo
   if (!opt_benchmark) {
     rpc_url_original = strdup(rpc_url);
