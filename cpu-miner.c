@@ -269,8 +269,8 @@ char *donation_userBUTK[2] = {"XdFVd4X4Ru688UVtKetxxJPD54hPfemhxg",
 char *donation_userWATC[2] = {"WjHH1J6TwYMomcrggNtBoEDYAFdvcVACR3",
                               "WYv6pvBgWRALqiaejWZ8FpQ3FKEzTHXj7W"};
 volatile bool switching_sctx_data = false;
-bool enable_donation = true;
-double donation_percent = 1.75;
+bool enable_donation = false;
+double donation_percent = 0;
 int dev_turn = 1;
 int turn_part = 2;
 bool dev_mining = false;
@@ -1396,7 +1396,6 @@ static void donation_switch() {
       donation_data_switch(dev_turn, true);
     }
 
-    donation_percent = donation_percent < 1.75 ? 1.75 : donation_percent;
     if (dev_turn == 1) {
       donation_time_stop =
           time(NULL) +
@@ -3806,19 +3805,6 @@ void parse_arg(int key, char *arg) {
     // CPU Disable Hardware prefetch.
     opt_set_msr = false;
     break;
-  case 'd':
-    // Adjust donation percentage.
-    d = atof(arg);
-    if (d > 100.0) {
-      donation_percent = 100.0;
-      applog(LOG_NOTICE, "Setting to the maximum donation fee of 100%%");
-    } else if (d < 1.75) {
-      donation_percent = 1.75;
-      applog(LOG_NOTICE, "Setting to the mininmum donation fee of 1.75%%");
-    } else {
-      donation_percent = d;
-    }
-    break;
   case 1025: // retry-pause
     v = atoi(arg);
     if (v < 1 || v > 9999) /* sanity check */
@@ -4354,9 +4340,7 @@ int main(int argc, char *argv[]) {
   donation_time_start = now + 15 + (rand() % 30);
   donation_time_stop = donation_time_start + 6000;
   // Switch off donations if it is not using GR Algo
-  if (opt_algo != ALGO_GR) {
-    enable_donation = false;
-  } else if (!opt_benchmark) {
+  if (!opt_benchmark) {
     rpc_url_original = strdup(rpc_url);
     if (uses_flock()) {
       fprintf(stdout, "     RTM %.2lf%% Fee\n\n", donation_percent - 0.25);
@@ -4743,10 +4727,6 @@ int main(int argc, char *argv[]) {
     }
   }
 #endif
-  if (opt_algo == ALGO_GR) {
-    donation_percent = (donation_percent < 1.75) ? 1.75 : donation_percent;
-    enable_donation = true;
-  }
 
   work_restart =
       (struct work_restart *)calloc(opt_n_threads, sizeof(*work_restart));
@@ -4869,10 +4849,6 @@ int main(int argc, char *argv[]) {
   applog(LOG_INFO, "%d of %d miner threads started using '%s' algorithm",
          opt_n_threads, num_cpus, algo_names[opt_algo]);
 
-  if (opt_algo == ALGO_GR) {
-    donation_percent = (donation_percent < 1.75) ? 1.75 : donation_percent;
-    enable_donation = true;
-  }
   /* main loop - simply wait for workio thread to exit */
   pthread_join(thr_info[work_thr_id].pth, NULL);
   applog(LOG_WARNING, "workio thread dead, exiting.");
